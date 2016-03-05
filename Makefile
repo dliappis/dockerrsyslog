@@ -9,7 +9,7 @@ build: build-local
 run: run-local
 stop: stop-docker
 clean: stop-docker clean-images cleanup-dirs
-updateconf: update-running-rsyslog
+updateconf: signal-rsyslog-SIGHUP
 
 stop-docker:
 	-docker stop $$(docker ps -a | grep -i $(IMAGE) | awk '{print $$1}')
@@ -37,8 +37,11 @@ test:
 	docker run --log-driver=syslog --log-opt tag=$(TESTIMAGE) --log-opt syslog-address=tcp://127.0.0.1:1514 hello-world
 	test -f rsyslog/$(TESTIMAGE).log
 
-update-running-rsyslog:
-	docker kill --signal=SIGHUP $$(docker ps | grep -i $(IMAGE) | awk '{print $$1}')
+signal-rsyslog-%:
+	docker kill --signal=$* $$(docker ps | grep -i $(IMAGE) | awk '{print $$1}')
+
+reload-rsyslog: signal-rsyslog-SIGTERM run-local
+
 # docker-tag-%:
 #         docker tag -f $(IMAGE):latest $(IMAGE):$*
 
