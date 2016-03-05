@@ -10,9 +10,9 @@ build: build-local
 run: run-local
 stop: stop-docker
 clean: stop-docker clean-images cleanup-dirs
-updateconf: signal-rsyslog-SIGHUP
+releaselogfiles: signal-rsyslog-SIGHUP
 reload: reload-rsyslog
-test: cleanup-dirs reload-rsyslog test1 test2
+test: cleanup-logs releaselogfiles test1 test2
 
 stop-docker:
 	-docker stop $$(docker ps -a | grep -i $(IMAGE) | awk '{print $$1}')
@@ -25,6 +25,13 @@ cleanup-dirs:
 #Ensure we are in the build dir before attempting any rm -rf !
 	if grep -q rsyslog .git/config; then \
 		sudo rm -rf rsyslog; \
+	fi
+
+cleanup-logs:
+#Ensure we are in the build dir before attempting any rm -rf !
+	if grep -q rsyslog .git/config; then \
+		sudo rm -rf rsyslog/$(TESTIMAGE1)*; \
+		sudo rm -rf rsyslog/$(TESTIMAGE2)*; \
 	fi
 
 build-local: stop-docker cleanup-dirs
