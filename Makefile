@@ -1,5 +1,6 @@
 IMAGE ?= dliappis/dockerrsyslog
-TESTIMAGE = hello-world
+TESTIMAGE1 = hello-world
+TESTIMAGE2 = jsonlogger
 TAG = latest
 
 .PHONY: %
@@ -10,6 +11,8 @@ run: run-local
 stop: stop-docker
 clean: stop-docker clean-images cleanup-dirs
 updateconf: signal-rsyslog-SIGHUP
+reload: reload-rsyslog
+test: cleanup-dirs reload-rsyslog test1 test2
 
 stop-docker:
 	-docker stop $$(docker ps -a | grep -i $(IMAGE) | awk '{print $$1}')
@@ -33,14 +36,19 @@ run-local:
 docker-push:
 	docker push $(IMAGE)
 
-test:
-	docker run --log-driver=syslog --log-opt tag=$(TESTIMAGE) --log-opt syslog-address=tcp://127.0.0.1:1514 hello-world
-	test -f rsyslog/$(TESTIMAGE).log
-
 signal-rsyslog-%:
 	docker kill --signal=$* $$(docker ps | grep -i $(IMAGE) | awk '{print $$1}')
 
 reload-rsyslog: signal-rsyslog-SIGTERM run-local
+
+test1:
+	docker run --log-driver=syslog --log-opt tag=$(TESTIMAGE1) --log-opt syslog-address=tcp://127.0.0.1:1514 hello-world
+	test -f rsyslog/$(TESTIMAGE1).log
+
+test2:
+	cd docker-compose.d/jsonlogger && make run
+	test -f rsyslog/$(TESTIMAGE2).log
+	export IFS=$$'\n'; for i in $$(cat rsyslog/$(TESTIMAGE2).log); do echo $$i | python -m json.tool; done
 
 # docker-tag-%:
 #         docker tag -f $(IMAGE):latest $(IMAGE):$*
