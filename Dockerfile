@@ -9,6 +9,9 @@ RUN apk add --update bash rsyslog && rm -rf /var/cache/apk/*
 RUN mkdir -p /etc/rsyslog.d/
 RUN mkdir -p /var/spool/rsyslog/
 RUN mkdir -p /var/log/rsyslog
+# The following is used when you want to bind mount the conf file from host
+RUN mkdir -p /etc/rsyslog
+
 # RUN chown -R 500:500 /var/log/rsyslog
 
 EXPOSE 1514 1514/udp
