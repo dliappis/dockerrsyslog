@@ -56,12 +56,3 @@ test2:
 	cd docker-compose.d/jsonlogger && make run
 	test -f rsyslog/$(TESTIMAGE2).log
 	export IFS=$$'\n'; for i in $$(cat rsyslog/$(TESTIMAGE2).log); do echo $$i | python -m json.tool; done
-
-# docker-tag-%:
-#         docker tag -f $(IMAGE):latest $(IMAGE):$*
-
-# docker-push-%: docker-tag-%
-#         docker push $(IMAGE):$*
-
-# # Shortcut for latest
-# docker-push: docker-push-latest
